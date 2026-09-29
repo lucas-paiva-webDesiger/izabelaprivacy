@@ -1,21 +1,19 @@
 FROM php:8.3-apache
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends libcurl4-openssl-dev \
-    && docker-php-ext-install curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && a2enmod headers rewrite
+RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Render supplies PORT; Apache is configured to listen on 10000.
-RUN sed -ri 's/^Listen 80$/Listen 10000/' /etc/apache2/ports.conf \
-    && sed -ri 's/<VirtualHost \*:80>/<VirtualHost *:10000>/' /etc/apache2/sites-available/000-default.conf
+RUN a2enmod rewrite headers
 
 COPY nicoleconteudobr.site/ /var/www/html/
 
-RUN chown -R www-data:www-data /var/www/html \
-    && find /var/www/html -type d -exec chmod 755 {} \; \
-    && find /var/www/html -type f -exec chmod 644 {} \;
+RUN if [ -f /var/www/html/nicolle/home57cf.html ]; then \
+      cp /var/www/html/nicolle/home57cf.html /var/www/html/index.html; \
+    fi
+
+RUN chmod -R 755 /var/www/html
 
 EXPOSE 10000
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/html
 
 CMD ["apache2-foreground"]
